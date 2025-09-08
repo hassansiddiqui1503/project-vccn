@@ -3,35 +3,30 @@ pipeline {
 
     environment {
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
-        SITE_ID = 'ce29c8dc-6153-4408-9d15-9091f108ce99'
+        SITE_ID = '9664e49a-5d63-4e18-8e82-4c51502ed9f6'
     }
 
     stages {
-        stage('Deploy to Netlify') {
+        stage('Checkout Repo') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Deploy index.html to Netlify') {
             steps {
                 bat '''
-                    echo 🚀 Preparing site for deployment...
+                    echo 🚀 Deploying index.html directly to Netlify...
 
-                    REM Clean old files
-                    if exist site.zip del site.zip
-                    if exist site rmdir /s /q site
+                    REM Use Netlify CLI for correct deploy
+                    npm install -g netlify-cli
 
-                    REM Create folder
-                    mkdir site
+                    netlify deploy --prod ^
+                        --dir=. ^
+                        --site=%SITE_ID% ^
+                        --auth=%NETLIFY_AUTH_TOKEN%
 
-                    REM Copy ALL files and subfolders
-                    xcopy * site\\ /E /Y
-
-                    REM Go inside folder and compress its contents
-                    cd site
-                    powershell Compress-Archive -Path * -DestinationPath ..\\site.zip -Force
-                    cd ..
-
-                    echo 🚀 Deploying to Netlify...
-                    curl -H "Authorization: Bearer %NETLIFY_AUTH_TOKEN%" ^
-                         -H "Content-Type: application/zip" ^
-                         --data-binary "@site.zip" ^
-                         https://api.netlify.com/api/v1/sites/%SITE_ID%/deploys
+                    echo ✅ Deployment completed.
                 '''
             }
         }
