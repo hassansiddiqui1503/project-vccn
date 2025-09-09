@@ -16,15 +16,10 @@ pipeline {
                     if exist site.zip del site.zip
                     if exist site rmdir /s /q site
 
-                    REM Create folder
-                    mkdir site
+                    REM Copy ALL files and folders (not just html/css/js)
+                    xcopy * site\\ /E /Y
 
-                    REM Copy all project files (HTML, CSS, JS)
-                    copy *.html site\\
-                    copy *.css site\\
-                    copy *.js site\\
-
-                    REM Compress files directly (no nested folder)
+                    REM Compress full site folder
                     powershell Compress-Archive -Path site\\* -DestinationPath site.zip -Force
 
                     echo 🚀 Deploying to Netlify...
