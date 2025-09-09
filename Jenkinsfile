@@ -12,11 +12,21 @@ pipeline {
                 bat '''
                     echo 🚀 Preparing site for deployment...
 
-                    REM Delete old files
+                    REM Clean old files
                     if exist site.zip del site.zip
+                    if exist site rmdir /s /q site
 
-                    REM Compress ONLY the public folder (where index.html is)
-                    powershell -Command "Compress-Archive -Path public\\* -DestinationPath site.zip -Force"
+                    REM Make new site folder
+                    mkdir site
+
+                    REM Copy only project files (avoid cyclic copy)
+                    xcopy *.html site\\ /Y
+                    xcopy *.css site\\ /Y
+                    xcopy *.js site\\ /Y
+                    xcopy assets site\\assets\\ /E /I /Y
+
+                    REM Compress into zip
+                    powershell -Command "Compress-Archive -Path site\\* -DestinationPath site.zip -Force"
 
                     echo 🚀 Deploying to Netlify...
                     curl -H "Authorization: Bearer %NETLIFY_AUTH_TOKEN%" ^
